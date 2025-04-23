@@ -37,6 +37,7 @@ public class GetWeather : MonoBehaviour
             Debug.Log($"🌤️ 天氣狀態：{weatherData.weather[0].description}");
 
             // 你可以在這裡觸發場景變化，例如：改背景圖、開始下雨等
+            //測試
         }
     }
 }
