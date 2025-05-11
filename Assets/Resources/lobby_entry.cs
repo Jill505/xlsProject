@@ -13,8 +13,10 @@ public class lobby_entry : MonoBehaviour
 
     public DateTime savedTime_LastTimeLogin;
 
-    void Start()
+
+    void Awake()
     {
+
         SaveTime ST = new SaveTime();
         if (login == true)
         {//防止場景切回來二次計算
@@ -24,6 +26,7 @@ public class lobby_entry : MonoBehaviour
                 //初始化
                 Debug.Log("首次遊玩本遊戲");
                 savedTime_LastTimeLogin = DateTime.Now;
+                Debug.Log("實現時間重置");
                 //儲存現在時間
                 ST = SaveTime.giveTime(DateTime.Now);
                 PlayerPrefs.SetString("LastLoginTime", JsonUtility.ToJson(ST));//序列化

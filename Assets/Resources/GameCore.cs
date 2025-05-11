@@ -29,7 +29,7 @@ public class GameCore : MonoBehaviour
 
 
     //靜態宣告
-    [Header("Static public data")]
+    [Header("Static public data")] 
     public static TimeSpan CaneGrowTime = new TimeSpan(8, 0, 0);//12小時
     public static SaveFile saveFile = new SaveFile();
     public Sprite[] caneStateSprite;
@@ -47,6 +47,11 @@ public class GameCore : MonoBehaviour
             saveFile.DataInitialize();
             saveFile.SaveSaveFile(saveFile);
         }
+
+
+
+
+
         //load conditions
         LoadWeather();
         //load saveFile
@@ -248,6 +253,8 @@ public class SaveFile
 
         lobby_entry game_entry = GameObject.Find("GameCore").GetComponent<lobby_entry>();
         timeSpanNotOnLine = DateTime.Now - game_entry.savedTime_LastTimeLogin;
+        Debug.Log("game_entry.savedTime_LastTimeLogin: " + game_entry.savedTime_LastTimeLogin);
+        Debug.Log("timeSpanNotOnLine: "+ timeSpanNotOnLine);
 
         Debug.Log("timeSpanNotOnLine：" + timeSpanNotOnLine.TotalMinutes);
         Debug.Log("現在分鐘數：" + DateTime.Now);
@@ -283,60 +290,72 @@ public class SaveFile
 
     public void CalNotOnline(Cane theCane)
     {
-        if (theCane.isPlantingCane)
+        if (!theCane.isPlantingCane || theCane.isAbleToHarvest)
         {
-            if (theCane.plantTime.Add(GameCore.CaneGrowTime) - DateTime.Now <= TimeSpan.Zero)
+            // 若未種植或已經成熟，不需要計算
+            Debug.Log(theCane + " 不需要計算離線成長。");
+            return;
+        }
+
+        // 判斷是否已經超過生長期
+        if (theCane.plantTime.Add(GameCore.CaneGrowTime) <= DateTime.Now)
+        {
+            // 進入成熟狀態
+            theCane.isAbleToHarvest = true;
+            theCane.isPlantingCane = false;
+            theCane.leftTimeSpan = TimeSpan.Zero;
+
+            Debug.Log(theCane + " 離線期間甘蔗已成熟，可以收成！");
+            return;
+        }
+
+        // 以下為離線期間生長邏輯
+        double totalMinutesOffline = timeSpanNotOnLine.TotalMinutes;
+        Debug.Log(totalMinutesOffline + " 分鐘離線");
+
+        double baseGrowth = totalMinutesOffline * 0.2; // 基礎成長 (0.2 kg / min)
+        double growthPenaltyPerMinute = 0.0;
+
+        // --- 蟲害模擬 ---
+        int warmCT = 0;
+        for (int i = 0; i < totalMinutesOffline; i += 5)
+        {
+            if (UnityEngine.Random.Range(0, 120 + GetWeather.nowTemp * 3) == 0)
             {
-                //Fin the process
-                Debug.Log(theCane + "結束");
-            }
-            else
-            {
-                //計算理想生長量
-                double totalMinutesOffline = timeSpanNotOnLine.TotalMinutes;
-                Debug.Log(totalMinutesOffline + "經過分鐘數");
-                double baseGrowth = totalMinutesOffline * 0.2; // 0.2 kg / min
-                                                               //計算蟲害產生
-                double growthPenaltyPerMinute = 0.0;
-
-                // warm 數量
-                for (int i = 0; i < totalMinutesOffline; i += 5)
-                {
-                    if (UnityEngine.Random.Range(0, 120 + GetWeather.nowTemp * 3) == 0)
-                    {
-                        theCane.warmCount += 1;
-                    }
-                }
-
-                growthPenaltyPerMinute += theCane.warmCount * 0.05;
-
-
-                for (int i = 0; i < totalMinutesOffline; i += 15)
-                {
-                    theCane.nowWater -= 3;
-
-                    // 濕度影響
-                    if (theCane.nowWater < 20)
-                    {
-                        double deficit = 20 - theCane.nowWater;
-                        growthPenaltyPerMinute += (deficit / 2) * 0.03;
-                    }
-                    else if (theCane.nowWater > 80)
-                    {
-                        double excess = theCane.nowWater - 80;
-                        growthPenaltyPerMinute += (excess / 2) * 0.03;
-                    }
-                }
-                // 最後實際成長量
-                double actualGrowth = baseGrowth + ( - growthPenaltyPerMinute);
-
-                // 保護，不要小於0
-                if (actualGrowth < 0) actualGrowth = 0;
-                //計算水份流失
-
-                theCane.CaneKg += (float)actualGrowth;
-                Debug.Log(theCane + "玩家不在的期間生長了 " + actualGrowth);
+                theCane.warmCount += 1;
+                warmCT += 1;
             }
         }
+        growthPenaltyPerMinute += theCane.warmCount * 0.05;
+
+        // --- 水分流失與濕度懲罰 ---
+        float waterCT = 0;
+        for (int i = 0; i < totalMinutesOffline; i += 15)
+        {
+            float randomWN = UnityEngine.Random.Range(0f, Mathf.Clamp01(0.6f + (GetWeather.nowTemp * 0.1f)));
+            theCane.nowWater -= 1 + randomWN;
+            waterCT += 1 + randomWN;
+
+            if (theCane.nowWater < 20)
+            {
+                double deficit = 20 - theCane.nowWater;
+                growthPenaltyPerMinute += (deficit / 2) * 0.03;
+            }
+            else if (theCane.nowWater > 80)
+            {
+                double excess = theCane.nowWater - 80;
+                growthPenaltyPerMinute += (excess / 2) * 0.03;
+            }
+        }
+
+        // --- 計算實際成長 ---
+        double actualGrowth = baseGrowth - growthPenaltyPerMinute;
+        actualGrowth = Math.Max(0, actualGrowth / 5);  // 避免負數並平衡數值
+
+        theCane.CaneKg += (float)actualGrowth;
+
+        Debug.Log($"{theCane} 玩家不在線期間生長了 {actualGrowth:F2} kg 甘蔗。");
+        Debug.Log($"{theCane} 玩家不在線期間蒸發了 {waterCT:F2}% 水分。");
+        Debug.Log($"{theCane} 玩家不在線期間長出了 {warmCT} 隻蟲。");
     }
 }

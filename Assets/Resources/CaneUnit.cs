@@ -26,14 +26,13 @@ public class CaneUnit : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         DateTime endTime = loadingCane.plantTime;
         endTime.Add(GameCore.CaneGrowTime);
 
         SyncCaneData();
-        //sync the rate to the image
-        
+        CaneBasicCheck();
     }
 
     public void CaneRolling()
@@ -56,6 +55,56 @@ public class CaneUnit : MonoBehaviour
                 gameCore.CaneD = loadingCane;
                 break;
         }
+    }
+
+    public void CaneBasicCheck()
+    {
+        DateTime endTime = loadingCane.plantTime;
+
+        endTime.Add(GameCore.CaneGrowTime);
+        loadingCane.leftTimeSpan = endTime.Add(GameCore.CaneGrowTime) - DateTime.Now;
+
+        Debug.Log("loadingCane.plantTime: " + loadingCane.plantTime);
+        //Debug.Log("Checking, loadingCane.leftTimeSpan: " + loadingCane.leftTimeSpan.TotalMinutes);
+        // 生長時間已到，但尚未進入可收成狀態
+        if (loadingCane.leftTimeSpan <= TimeSpan.Zero && loadingCane.isAbleToHarvest == false)
+        {
+            // 更新狀態為可收割
+            Debug.Log("loadingCane.leftTimeSpan: " + loadingCane.leftTimeSpan.TotalMinutes);
+            Debug.Log("生成clog來自 CaneBasicCheck");
+            loadingCane.leftTimeSpan = TimeSpan.Zero;
+            loadingCane.isAbleToHarvest = true;
+            loadingCane.isPlantingCane = false;
+
+            //Console.WriteLine("甘蔗已成熟，可以收成了，瞬間事件！");
+        }
+        // 如果目前允許收割
+        else if (loadingCane.isAbleToHarvest == true)
+        {
+            //Console.WriteLine("甘蔗可供收成中。");
+        }
+        // 還在生長中
+        else if (loadingCane.isPlantingCane == true)
+        {
+            //Console.WriteLine($"甘蔗成長中，剩餘時間：{loadingCane.leftTimeSpan.TotalMinutes} 分鐘。");
+        }
+        else
+        {
+            // 非預期狀態（例：未種植）
+            Console.WriteLine("尚未種植甘蔗。");
+        }
+    }
+
+    public void Harvest()
+    {
+        loadingCane.isAbleToHarvest = false;
+        loadingCane.isPlantingCane = false;
+
+        gameCore.holdingCaneKg += (int)loadingCane.CaneKg;
+
+        //reset cane data
+        loadingCane.warmCount = 0;
+        loadingCane.CaneKg = 0;
     }
 
     public void loadingCaneAndCaneUnitSync()
@@ -82,6 +131,8 @@ public class CaneUnit : MonoBehaviour
         double progress = elapsedDuration / totalDuration;
 
         loadingCane.leftTimeSpan = endTime.Add(GameCore.CaneGrowTime) - DateTime.Now;
+        
+        CaneBasicCheck();
 
         return Mathf.Clamp01((float)progress); // 限制在 0~1之間
     }
@@ -93,6 +144,7 @@ public class Cane
     public float CaneKg; //甘蔗重量，隨時間增加而增加，因蟲子而減少
     public int bugNumber = 0;
     public bool isPlantingCane = false;
+    public bool isAbleToHarvest = false;
 
     public float nowWater = 0;
 
@@ -108,23 +160,49 @@ public class Cane
     public int warmCount = 0;
 
     public float realKgGrowth = 0f;
+
     public float kgGrowthPerMin = 0.2f;
     public float waterCostPerMin = 0.05f;
 
+    public float waterYield = 0.03f;
+
     public float warmSpawnChance = 50f; // ( 1/number)
     public float warmYield = 0.03f;
+
+
     public void calKgGrowth()
     {
+        realKgGrowth = 0;
 
+        realKgGrowth += kgGrowthPerMin;
+
+        if (nowWater > 80 || nowWater < 20)
+        {
+            float dist = 0;
+            if (nowWater > 80)
+            {
+                dist = nowWater - 80;
+            }
+            else
+            {
+                dist = 20 - nowWater;
+            }
+            realKgGrowth -= waterYield * dist;
+            //計算水處罰
+        }
+
+        realKgGrowth -= warmCount * warmYield;
     }
 
 
     public void transformDateTimeToJsonElement()
     {
         plantTimeString = plantTime.ToString("o"); // "o" 是 ISO 8601 格式 ("2024-05-07T13:45:30.1234567Z")
+        Debug.Log("存入解序列 - plantTimeString: " + plantTimeString);
     }
     public void transformJsonElementDateTime()
     {
+        Debug.Log("解序列 - plantTimeString: " +plantTimeString);
         if (!string.IsNullOrEmpty(plantTimeString))
         {
             plantTime = DateTime.Parse(plantTimeString);

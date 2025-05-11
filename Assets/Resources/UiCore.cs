@@ -2,6 +2,7 @@
 using Unity.VisualScripting.FullSerializer;
 using UnityEditor.MemoryProfiler;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using UnityEngine.UIElements.Experimental;
 
@@ -23,6 +24,7 @@ public class UiCore : MonoBehaviour
     public Text nowKg;
 
     public GameObject StartPlantButton;
+    public GameObject HarvestButton;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -38,16 +40,19 @@ public class UiCore : MonoBehaviour
     public void openCaneCanvas(CaneUnit caneUnit)
     {
         StartPlantButton.SetActive(false);
+        HarvestButton.SetActive(false);
 
         //Load in Cane Data
         CaneCanvas.SetActive(true);
         nowLoadingCaneUnit = caneUnit;
-        Debug.Log(JsonUtility.ToJson(nowLoadingCaneUnit));
+        //Debug.Log(JsonUtility.ToJson(nowLoadingCaneUnit));
 
 
-        if (nowLoadingCaneUnit.isCanePlantFinished == true)
+        if (nowLoadingCaneUnit.loadingCane.isAbleToHarvest == true)
         {
+            //allow harvest;
             //make all other button fade and only left harvest button.
+            HarvestButton.SetActive(true);
         }
         else if (nowLoadingCaneUnit.loadingCane.isPlantingCane == false)
         {
@@ -64,10 +69,7 @@ public class UiCore : MonoBehaviour
             DateTime endTime = caneUnit.loadingCane.plantTime;
             TimeSpan TS = endTime.Add(GameCore.CaneGrowTime) - caneUnit.loadingCane.plantTime;
             //timePercentageText.text = "剩餘時間：" + nowLoadingCaneUnit.loadingCane.leftTimeSpan;
-            TimeSpan ts = nowLoadingCaneUnit.loadingCane.leftTimeSpan;
-            timePercentageText.text = $"剩餘時間：{ts.Hours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
         }
-        
     }
 
     public void syncData()
@@ -82,18 +84,24 @@ public class UiCore : MonoBehaviour
 
             //nowKg.text = "現有重量：" + nowLoadingCaneUnit.loadingCane.CaneKg;
             nowKg.text = "現有重量：" + nowLoadingCaneUnit.loadingCane.CaneKg.ToString("F1") + " 公斤";
-            //判斷甘蔗是否長成
+
+
+            //判斷甘蔗是否長成 此部分代碼移動到Cane Unit
+            /*
             if (nowLoadingCaneUnit.loadingCane.leftTimeSpan <= TimeSpan.Zero)
             {
-
+                nowLoadingCaneUnit.loadingCane.leftTimeSpan = TimeSpan.Zero;
             }
             else
             {
 
-            }
-
-
+            }*/
+            
             TimeSpan ts = nowLoadingCaneUnit.loadingCane.leftTimeSpan;
+            if (ts <= TimeSpan.Zero)
+            {
+                ts = TimeSpan.Zero;
+            }
             timePercentageText.text = $"剩餘時間：{ts.Hours:D2}:{ts.Minutes:D2}:{ts.Seconds:D2}";
 
             //Debug.Log("現載入進度：" + nowLoadingCaneUnit.CalculateTimeProgress());
@@ -108,6 +116,9 @@ public class UiCore : MonoBehaviour
 
         //Set start currnet tume
         nowLoadingCaneUnit.loadingCane.plantTime = DateTime.Now;
+        Debug.Log("plantTime變更");
+        nowLoadingCaneUnit.loadingCane.leftTimeSpan = new TimeSpan(1,0,0);
+
         nowLoadingCaneUnit.loadingCane.warmCount = 0;
 
         nowLoadingCaneUnit.loadingCane.CaneKg = 0;
@@ -126,5 +137,11 @@ public class UiCore : MonoBehaviour
     public void waterMinus()
     {
         nowLoadingCaneUnit.loadingCane.nowWater -= 5f;
+    }
+
+    public void HarvestNowCaneUnit()
+    {
+        nowLoadingCaneUnit.Harvest();
+        openCaneCanvas(nowLoadingCaneUnit);
     }
 }
