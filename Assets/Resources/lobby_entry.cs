@@ -16,7 +16,6 @@ public class lobby_entry : MonoBehaviour
 
     void Awake()
     {
-
         SaveTime ST = new SaveTime();
         if (login == true)
         {//防止場景切回來二次計算

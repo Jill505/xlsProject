@@ -25,6 +25,22 @@ public class UiCore : MonoBehaviour
 
     public GameObject StartPlantButton;
     public GameObject HarvestButton;
+
+    [Header("二級菜單")]
+    public GameObject feliPatt;
+    public Button MoiButton;
+    public Button deWarmButton;
+    public Button feliButton;
+    
+    public void closeFeliPatt()
+    {
+        feliPatt.SetActive(false);
+    }
+    public void openFeliPatt()
+    {
+        feliPatt.SetActive(true);
+    }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -41,10 +57,13 @@ public class UiCore : MonoBehaviour
     {
         StartPlantButton.SetActive(false);
         HarvestButton.SetActive(false);
+        feliPatt.SetActive(false);
 
         //Load in Cane Data
         CaneCanvas.SetActive(true);
         nowLoadingCaneUnit = caneUnit;
+        gameCore.warmManager.loadCaneUnitWarmSpawn();
+
         //Debug.Log(JsonUtility.ToJson(nowLoadingCaneUnit));
 
 
@@ -112,6 +131,8 @@ public class UiCore : MonoBehaviour
 
     public void StartPlant()
     {
+        Debug.Log("openaaaaAAAAAAAAAAAAAAAA");
+
         nowLoadingCaneUnit.loadingCane.isPlantingCane = true;
 
         //Set start currnet tume

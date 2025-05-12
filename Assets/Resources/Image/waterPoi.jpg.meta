@@ -1,19 +1,10 @@
 fileFormatVersion: 2
-guid: 6740b23925d94d04bbf1177ebb438030
+guid: 467bdc5a066732e4789ee9610386fb7e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1412178401418203129
-    second: Sugar_Cane_JE2_BE2_0
-  - first:
-      213: 8918657325572666068
-    second: Sugar_Cane_JE2_BE2_1
-  - first:
-      213: 6830566085053582721
-    second: Sugar_Cane_JE2_BE2_2
-  - first:
-      213: -2604632401393572389
-    second: Sugar_Cane_JE2_BE2_3
+      213: -3099443565146107442
+    second: waterPoi_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -135,13 +126,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sugar_Cane_JE2_BE2_0
+      name: waterPoi_0
       rect:
         serializedVersion: 2
-        x: 59
-        y: 28
-        width: 47
-        height: 244
+        x: 0
+        y: 0
+        width: 250
+        height: 234
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -150,74 +141,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9ffc20826c0199310800000000000000
-      internalID: 1412178401418203129
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Sugar_Cane_JE2_BE2_1
-      rect:
-        serializedVersion: 2
-        x: 104
-        y: 50
-        width: 47
-        height: 200
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 4d2b134a59f65cb70800000000000000
-      internalID: 8918657325572666068
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Sugar_Cane_JE2_BE2_2
-      rect:
-        serializedVersion: 2
-        x: 149
-        y: 50
-        width: 47
-        height: 200
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: 18d037a1aab0bce50800000000000000
-      internalID: 6830566085053582721
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Sugar_Cane_JE2_BE2_3
-      rect:
-        serializedVersion: 2
-        x: 194
-        y: 28
-        width: 47
-        height: 244
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: bd5a67081ac7adbd0800000000000000
-      internalID: -2604632401393572389
+      spriteID: ec19812cf709cf4d0800000000000000
+      internalID: -3099443565146107442
       vertices: []
       indices: 
       edges: []
@@ -235,11 +160,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      Sugar_Cane_JE2_BE2_0: 1412178401418203129
-      Sugar_Cane_JE2_BE2_1: 8918657325572666068
-      Sugar_Cane_JE2_BE2_2: 6830566085053582721
-      Sugar_Cane_JE2_BE2_3: -2604632401393572389
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

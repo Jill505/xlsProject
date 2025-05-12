@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using NUnit.Framework.Internal.Commands;
 using System;
 using System.Globalization;
 using Unity.Android.Gradle.Manifest;
@@ -35,6 +36,87 @@ public class CaneUnit : MonoBehaviour
         CaneBasicCheck();
     }
 
+    private void FixedUpdate()
+    {
+        CaneGameGoingCalculate();
+    }
+
+    public void CaneGameGoingCalculate()
+    {
+        //判斷是否正在生長狀態中
+        if (!loadingCane.isPlantingCane || loadingCane.isAbleToHarvest)
+        {
+            // 若未種植或已經成熟，不需要計算
+            Debug.Log(loadingCane + " 不需要計算離線成長。");
+            return;
+        }
+
+        // 判斷是否已經超過生長期
+        if (loadingCane.plantTime.Add(GameCore.CaneGrowTime) <= DateTime.Now)
+        {
+            // 進入成熟狀態
+            loadingCane.isAbleToHarvest = true;
+            loadingCane.isPlantingCane = false;
+            loadingCane.leftTimeSpan = TimeSpan.Zero;
+
+            Debug.Log(loadingCane + " 離線期間甘蔗已成熟，可以收成！");
+            return;
+        }
+
+        double baseGrowth = 1 * 0.2 / 60 / 50; // 基礎成長 (0.2 kg / min)
+        double growthPenaltyPerMinute = 0.0;
+
+        int ctConst = 1;
+        if (GetWeather.nowWeather == "Sun")
+        {
+            ctConst = 2;
+        }
+
+        if (UnityEngine.Random.Range(0, 240 * 60 * 50) <= (GetWeather.nowTemp / 3 * ctConst))
+        {
+            loadingCane.warmCount += 1;
+        }
+
+        growthPenaltyPerMinute += loadingCane.warmCount * 0.05 / 60 / 50;
+
+        float waterCT = 0;
+        float waterSunDec = 1;
+
+        if (GetWeather.nowWeather == "Sun")
+        {
+            waterSunDec = 1.4f;
+        }
+
+       
+        float randomWN =(1+ UnityEngine.Random.Range(0f, Mathf.Clamp01(0.6f + (GetWeather.nowTemp * 0.1f))))/60/50;
+        randomWN *= waterSunDec;
+
+        if (GetWeather.nowWeather == "Rain")
+        {
+            loadingCane.nowWater += (GetWeather.nowHumidity - GetWeather.nowTemp)/100/60/50;
+        }
+        else
+        {
+            loadingCane.nowWater -= randomWN;
+            waterCT += randomWN;
+        }
+
+
+        if (loadingCane.nowWater < 20)
+        {
+            double deficit = 20 - loadingCane.nowWater;
+            growthPenaltyPerMinute += (deficit / 2) * 0.03 / 60 / 50;
+        }
+        else if (loadingCane.nowWater > 80)
+        {
+            double excess = loadingCane.nowWater - 80;
+            growthPenaltyPerMinute += (excess / 2) * 0.03 / 60 / 50;
+        }
+
+        double actualGrowth = baseGrowth - (growthPenaltyPerMinute/60 / 50);
+        loadingCane.CaneKg += (float)actualGrowth;
+    }
+
     public void CaneRolling()
     {
 
@@ -64,7 +146,7 @@ public class CaneUnit : MonoBehaviour
         endTime.Add(GameCore.CaneGrowTime);
         loadingCane.leftTimeSpan = endTime.Add(GameCore.CaneGrowTime) - DateTime.Now;
 
-        Debug.Log("loadingCane.plantTime: " + loadingCane.plantTime);
+        //Debug.Log("loadingCane.plantTime: " + loadingCane.plantTime);
         //Debug.Log("Checking, loadingCane.leftTimeSpan: " + loadingCane.leftTimeSpan.TotalMinutes);
         // 生長時間已到，但尚未進入可收成狀態
         if (loadingCane.leftTimeSpan <= TimeSpan.Zero && loadingCane.isAbleToHarvest == false)
@@ -195,14 +277,21 @@ public class Cane
     }
 
 
+
+
+
+
+
+
+
     public void transformDateTimeToJsonElement()
     {
         plantTimeString = plantTime.ToString("o"); // "o" 是 ISO 8601 格式 ("2024-05-07T13:45:30.1234567Z")
-        Debug.Log("存入解序列 - plantTimeString: " + plantTimeString);
+        //Debug.Log("存入解序列 - plantTimeString: " + plantTimeString);
     }
     public void transformJsonElementDateTime()
     {
-        Debug.Log("解序列 - plantTimeString: " +plantTimeString);
+        //Debug.Log("解序列 - plantTimeString: " +plantTimeString);
         if (!string.IsNullOrEmpty(plantTimeString))
         {
             plantTime = DateTime.Parse(plantTimeString);

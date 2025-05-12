@@ -17,6 +17,7 @@ public class CaneFunction : MonoBehaviour
 
     public void CloseCaneCanvas()
     {
+        GameObject.Find("GameCore").GetComponent<WarmManager>().cleanAllWarm();
         caneCanvas.SetActive(false);
     }
 }

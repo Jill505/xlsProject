@@ -9,6 +9,9 @@ using UnityEngine.UIElements.Experimental;
 public class GameCore : MonoBehaviour
 {
     public lobby_entry game_entry;
+    public WarmManager warmManager;
+    public UiCore uiCore;
+
     [Header("Cane System")]
     public CaneUnit[] caneUnits;
 
@@ -26,7 +29,6 @@ public class GameCore : MonoBehaviour
     public Cane CaneB;
     public Cane CaneC;
     public Cane CaneD;
-
 
     //靜態宣告
     [Header("Static public data")] 
@@ -68,7 +70,7 @@ public class GameCore : MonoBehaviour
         CalculateProtection(CaneC);
         CalculateProtection(CaneD);
 
-        GameGoing();
+
     }
 
     public void CalculateProtection(Cane theCane)
@@ -100,12 +102,7 @@ public class GameCore : MonoBehaviour
 
         }
     }
-    
-    public void GameGoing()
-    {
-
-    }
-
+ 
     public void SaveFile()
     {
         syncLocalDataToStaticData();
@@ -318,9 +315,14 @@ public class SaveFile
 
         // --- 蟲害模擬 ---
         int warmCT = 0;
-        for (int i = 0; i < totalMinutesOffline; i += 5)
+        int ctConst = 1;
+        if (GetWeather.nowWeather == "Sun")
         {
-            if (UnityEngine.Random.Range(0, 120 + GetWeather.nowTemp * 3) == 0)
+            ctConst = 2;
+        }
+        for (int i = 0; i < totalMinutesOffline; i += 1)
+        {
+            if (UnityEngine.Random.Range(0, 240) <= (GetWeather.nowTemp /3 * ctConst))
             {
                 theCane.warmCount += 1;
                 warmCT += 1;
@@ -330,11 +332,25 @@ public class SaveFile
 
         // --- 水分流失與濕度懲罰 ---
         float waterCT = 0;
+        float waterSunDec = 1;
+        if (GetWeather.nowWeather == "Sun")
+        {
+            waterSunDec = 1.4f;
+        }
         for (int i = 0; i < totalMinutesOffline; i += 15)
         {
             float randomWN = UnityEngine.Random.Range(0f, Mathf.Clamp01(0.6f + (GetWeather.nowTemp * 0.1f)));
-            theCane.nowWater -= 1 + randomWN;
-            waterCT += 1 + randomWN;
+            randomWN *= waterSunDec;
+
+            if (GetWeather.nowWeather == "Rain")
+            {
+                theCane.nowWater += (GetWeather.nowHumidity - GetWeather.nowTemp) /100;
+            }
+            else
+            {
+                theCane.nowWater -= randomWN;
+                waterCT += randomWN;
+            }
 
             if (theCane.nowWater < 20)
             {

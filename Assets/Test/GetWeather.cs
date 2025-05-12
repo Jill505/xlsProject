@@ -14,6 +14,9 @@ public class GetWeather : MonoBehaviour
 
 
     public static string nowWeather = "";
+    // Sun - 烈陽
+    // Rain - 下雨狀態
+    // Cloud - 正常
     public static float nowHumidity = 0;
     public static float nowTemp = 0;
 
