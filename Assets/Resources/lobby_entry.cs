@@ -74,7 +74,7 @@ public class lobby_entry : MonoBehaviour
 
     void Update()
     {
-        //同步現在時間
+         //同步現在時間
         //showNowTime.text = DateTime.Now.Year + "/" + DateTime.Now.Month + "/" + DateTime.Now.Day + " " + DateTime.Now.Hour + ":" + DateTime.Now.Minute + ":" + DateTime.Now.Second;
         //儲存上次時間 如影響校能應優先考慮刪除
         SaveTime ST = new SaveTime();
